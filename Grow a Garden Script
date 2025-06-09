@@ -1,18 +1,13 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-Rayfield:Notify({
-   Title = "Notification!",
-   Content = "Sub to my Channel @DTXHUB",
-   Duration = 2.5,
-   Image = nil,
-})
-
 local Window = Rayfield:CreateWindow({
-   Name = "Datrox GAG script",
+   Name = "DTX HUB | GROW A GARDEN",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
-   LoadingTitle = "Grow a Garden",
+   LoadingTitle = "Client Loaded",
    LoadingSubtitle = "by Datrox",
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
 
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
@@ -20,43 +15,616 @@ local Window = Rayfield:CreateWindow({
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "DTX HUB"
+      FileName = "DTX SCRIPT HUB"
    },
 
    Discord = {
       Enabled = true, -- Prompt the user to join your Discord server if their executor supports it
-      Invite = "https://discord.gg/zYJeSekDJN", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      Invite = "zYJeSekDJN", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
 
    KeySystem = false, -- Set this to true to use our key system
    KeySettings = {
-      Title = "Get the key pal",
-      Subtitle = "Key System",
-      Note = "Don't download anything", -- Use this to tell the user how to get a key
-      FileName = "uro's key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      Title = "Key system",
+      Subtitle = "SYSTEM",
+      Note = "join discord.gg/EY4QgKVhFJ to get key", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
       SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
-      GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-      Key = {"https://pastebin.com/raw/YhtYXxD9"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"https://pastebin.com/raw/APrXQmec"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
    }
 })
 
-local Tab = Window:CreateTab("Farm 🥕", nil) -- Title, Image
 
-local Button = Tab:CreateButton({
-   Name = "auto farm",
-   Callback = function()
-   -- The function that takes place when the button is pressed
-   end,
+local CreditsTab = Window:CreateTab("ðŸ“° Credits")
+local VisualTab = Window:CreateTab("ðŸ‘ï¸ Visual")
+local MainTab = Window:CreateTab("ðŸ›’ SELL/BUY")
+local BypassTab = Window:CreateTab("ðŸ“Ž BYPASSES")
+
+local VisualSection = VisualTab:CreateSection("Visual ESP Toggles")
+
+-- Utility function for ESP labels
+local function createESPText(targetPart, name, color)
+	local tag = Instance.new("BillboardGui", targetPart)
+	tag.Name = name
+	tag.Adornee = targetPart
+	tag.Size = UDim2.new(0, 100, 0, 20)
+	tag.StudsOffset = Vector3.new(0, 2, 0)
+	tag.AlwaysOnTop = true
+
+	local text = Instance.new("TextLabel", tag)
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.TextColor3 = color
+	text.TextStrokeTransparency = 0.5
+	text.TextScaled = true
+	text.Font = Enum.Font.SourceSansBold
+
+	return tag, text
+end
+
+-- Cleanup old ESP
+local function removeESP(character)
+	if character then
+		for _, obj in pairs(character:GetDescendants()) do
+			if obj:IsA("BillboardGui") and obj.Name:match("^ESP_") then
+				obj:Destroy()
+			end
+		end
+	end
+end
+
+-- Main ESP function
+local function applyESP(player)
+	local function onCharacterAdded(char)
+		wait(1)
+		removeESP(char)
+		if char:FindFirstChild("Head") then
+			if _G.ShowName then
+				local tag, text = createESPText(char.Head, "ESP_Name", Color3.fromRGB(255, 255, 255))
+				text.Text = player.Name
+			end
+			if _G.ShowHealth then
+				local humanoid = char:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					local tag, text = createESPText(char.Head, "ESP_Health", Color3.fromRGB(255, 0, 0))
+					text.Text = "HP: " .. math.floor(humanoid.Health)
+					humanoid.HealthChanged:Connect(function()
+						if tag and tag.Parent then
+							text.Text = "HP: " .. math.floor(humanoid.Health)
+						end
+					end)
+				end
+			end
+			if _G.ShowDistance then
+				local tag, text = createESPText(char.Head, "ESP_Distance", Color3.fromRGB(0, 255, 255))
+				game:GetService("RunService").RenderStepped:Connect(function()
+					if text and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+						local dist = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+						text.Text = "Dist: " .. math.floor(dist)
+					end
+				end)
+			end
+			if _G.ShowHolding then
+				local tag, text = createESPText(char.Head, "ESP_Tool", Color3.fromRGB(255, 255, 0))
+				local tool = player.Character:FindFirstChildOfClass("Tool")
+				if tool then
+					text.Text = "Holding: " .. tool.Name
+				end
+				player.Character.ChildAdded:Connect(function(child)
+					if child:IsA("Tool") then
+						text.Text = "Holding: " .. child.Name
+					end
+				end)
+			end
+		end
+		if _G.ShowHighlight then
+			local highlight = Instance.new("Highlight")
+			highlight.Name = "ESP_Highlight"
+			highlight.Adornee = char
+			highlight.FillTransparency = 0.5
+			highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+			highlight.Parent = char
+		end
+	end
+
+	player.CharacterAdded:Connect(onCharacterAdded)
+	if player.Character then onCharacterAdded(player.Character) end
+end
+
+-- Watch players
+local function enableESP()
+	for _, p in ipairs(game.Players:GetPlayers()) do
+		if p ~= game.Players.LocalPlayer then
+			applyESP(p)
+		end
+	end
+	game.Players.PlayerAdded:Connect(function(p)
+		if p ~= game.Players.LocalPlayer then
+			applyESP(p)
+		end
+	end)
+end
+
+-- Global toggles
+_G.ShowName = false
+_G.ShowHealth = false
+_G.ShowDistance = false
+_G.ShowHighlight = false
+_G.ShowHolding = false
+
+-- UI Toggles
+VisualTab:CreateToggle({
+	Name = "Show Name",
+	CurrentValue = false,
+	Callback = function(value)
+         _G.ShowName = value
+            enableESP() 
+        end 
+    })
+ 
+VisualTab:CreateToggle({
+	Name = "Show Health",
+	CurrentValue = false,
+	Callback = function(value)
+		_G.ShowHealth = value
+		enableESP()
+	end
 })
 
-local Button = Tab:CreateButton({
-   Name = "auto plant",
-   Callback = function()
-   -- The function that takes place when the button is pressed
-   end,
+VisualTab:CreateToggle({
+	Name = "Show Distance",
+	CurrentValue = false,
+	Callback = function(value)
+		_G.ShowDistance = value
+		enableESP()
+	end
 })
 
+VisualTab:CreateToggle({
+	Name = "Show Highlight",
+	CurrentValue = false,
+	Callback = function(value)
+		_G.ShowHighlight = value
+		enableESP()
+	end
+})
 
+local playerName = game.Players.LocalPlayer.Name
 
+-- Welcome Message
+CreditsTab:CreateParagraph({
+	Title = "ðŸ‘‹ Welcome " .. playerName .. "! ðŸŽ‰",
+	Content = "Enjoy your experience with DTX HUB!"
+})
 
+-- Script Owners
+CreditsTab:CreateParagraph({
+	Title = "ðŸ‘‘ | Creators",
+	Content = "Datrox!ðŸ’Ž"
+})
+
+-- Script Owners
+CreditsTab:CreateParagraph({
+	Title = "ðŸ’Ž | Developer",
+	Content = "Datrox"
+})
+
+-- Socials Section
+CreditsTab:CreateSection("Socials")
+
+CreditsTab:CreateButton({
+	Name = "ðŸŒ | Copy Discord Link",
+	Callback = function()
+		setclipboard("https://discord.gg/zYJeSekDJN")
+		Rayfield:Notify({
+			Title = "Copied!",
+			Content = "Discord link copied to clipboard.",
+			Duration = 3,
+		})
+	end
+})
+
+CreditsTab:CreateButton({
+	Name = "ðŸŒ | Copy YouTube Link",
+	Callback = function()
+		setclipboard("https://www.youtube.com/@DTXHUB") -- Replace with your channel link
+		Rayfield:Notify({
+			Title = "Copied!",
+			Content = "YouTube link copied to clipboard.",
+			Duration = 3,
+		})
+	end
+})
+
+Rayfield:Notify({
+   Title = "DTX NOTIFY",
+   Content = "Press K to close the ui",
+   Duration = 4,
+   Image = 4483362458,
+})
+
+Rayfield:Notify({
+   Title = "DTX NOTIFY",
+   Content = "Client Updated",
+   Duration = 3,
+   Image = 4483362458,
+})
+
+Rayfield:Notify({
+   Title = "DTX NOTIFY",
+   Content = "Bypass Loaded",
+   Duration = 4,
+   Image = 4483362458,
+})
+local HoneySection = MainTab:CreateSection("HONEY")
+
+MainTab:CreateToggle({
+	Name = "GIVE FRUIT INTO HONEY",
+	CurrentValue = false,
+	Callback = function()
+    	local args = {
+    "MachineInteract"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("HoneyMachineService_RE"):FireServer(unpack(args))
+	end
+})
+
+local FRUITSection = MainTab:CreateSection("BUY FRUIT--JS SPAM ON THE TOOGLE TO BUY MUCH ")
+
+MainTab:CreateToggle({
+	Name = "BUY CARROT",
+	CurrentValue = false,
+	Callback = function()
+		local args = {
+    "Carrot"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY STRAWBERRY",
+	CurrentValue = false,
+	Callback = function()
+            local args = {
+    "Strawberry"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+            	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY BLUEBERRY",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Blueberry"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY ORANGE ",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Orange"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY TOMATO",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Tomato"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY CORN",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Corn"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY DAFFODIL",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Daffodil"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY WATERMELON",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Watermelon"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY PUMPKIN",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Pumkin"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY APPLE",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Apple"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY BAMBOO",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Bamboo"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY COCONUT",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Coconut"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY CACTUS",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Cactus"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY DRAGON FRUIT",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Dragon Fruit"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY MANGO",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Mango"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY GRAPE",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Grape"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY MUSHROOM",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Mushroom"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY PEPPER",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Pepper"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY CACAO",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Cacao"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+MainTab:CreateToggle({
+	Name = "BUY BEANSTALK",
+	CurrentValue = false,
+	Callback = function()
+            		local args = {
+    "Beanstalk"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock"):FireServer(unpack(args))
+	end
+})
+
+BypassTab:CreateToggle({
+        Name = "ANTI CD",
+        CurrentValue = false,
+        Callback = function()
+                 local function v149()
+                for v472, v473 in ipairs(game:GetService("Workspace"):GetDescendants()) do
+                    if v473:IsA("ProximityPrompt") then
+                        v473.HoldDuration = 0
+                    end
+                end
+            end
+            v149()
+            task.spawn(
+                function()
+                    while true do
+                        task.wait(11 + 4)
+                        v149()
+                    end
+                end
+            )
+        end
+    }
+)
+
+BypassTab:CreateToggle({
+        Name = "ANTI CameraShake",
+        CurrentValue = false,
+        Callback = function()
+            local v155 = 0 - 0
+            local v156
+            while true do
+                if (v155 == 1) then
+                    task.spawn(
+                        function()
+                            while true do
+                                task.wait(1)
+                                v156()
+                            end
+                        end
+                    )
+                    break
+                end
+                if (0 == v155) then
+                    v156 = nil
+                    function v156()
+                        local v562 = 580 - (361 + 219)
+                        local v563
+                        while true do
+                            if (v562 == 0) then
+                                v563 = game.Players.LocalPlayer
+                                if (v563 and v563.Character) then
+                                    local v706 = 320 - (53 + 267)
+                                    local v707
+                                    while true do
+                                        if (v706 == 0) then
+                                            v707 = v563.Character:FindFirstChild("CameraBobbing")
+                                            if v707 then
+                                                v707:Destroy()
+                                            end
+                                            break
+                                        end
+                                    end
+                                end
+                                break
+                            end
+                        end
+                    end
+                    v155 = 1 + 0
+                end
+            end
+        end
+    }
+)
+
+BypassTab:CreateToggle({
+        Name = "TELEPORTER",
+        CurrentValue = false,
+        Callback = function()
+             if v94 then
+                local v510 = 1317 - (1114 + 203)
+                local v511
+                while true do
+                    if (v510 == (726 - (228 + 498))) then
+                        v511 = game.Players:FindFirstChild(v94)
+                        if (v511 and v511.Character) then
+                            local v678 = 0
+                            local v679
+                            local v680
+                            while true do
+                                if (v678 == 1) then
+                                    if (v679 and v680) then
+                                        local v742 = 0
+                                        while true do
+                                            if (v742 == (1 + 1)) then
+                                                v680.CFrame = v679.CFrame
+                                                getgenv().FreeFallMethod = false
+                                                break
+                                            end
+                                            if (0 == v742) then
+                                                getgenv().FreeFallMethod = true
+                                                v99()
+                                                v742 = 1 + 0
+                                            end
+                                            if (1 == v742) then
+                                                v680.CFrame =
+                                                    v679.CFrame +
+                                                    Vector3.new(663 - (174 + 489), 130 - 80, 1905 - (830 + 1075))
+                                                task.wait(0.8)
+                                                v742 = 2
+                                            end
+                                        end
+                                    else
+                                        warn("Player found, but no HumanoidRootPart detected.")
+                                    end
+                                    break
+                                end
+                                if (v678 == 0) then
+                                    v679 = v511.Character:FindFirstChild("HumanoidRootPart")
+                                    v680 = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                                    v678 = 525 - (303 + 221)
+                                end
+                            end
+                        else
+                            warn("Invalid player selection for teleport.")
+                        end
+                        break
+                    end
+                end
+            else
+                warn("No player selected for teleport.")
+            end
+        end
+    }
+)
+  
